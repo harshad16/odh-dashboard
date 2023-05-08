@@ -35,18 +35,19 @@ export const generateElyraSecret = (
   stringData: {
     /* eslint-disable camelcase */
     'odh_dsp.json': JSON.stringify({
-      display_name: 'ODH_DSP',
+      display_name: 'Data Science Pipeline',
       metadata: {
         tags: [],
-        display_name: 'ODH_DSP',
+        display_name: 'Data Science Pipeline',
         engine: 'Tekton',
-        auth_type: 'EXISTING_BEARER_TOKEN',
+        auth_type: 'KUBERNETES_SERVICE_ACCOUNT_TOKEN',
         api_endpoint: route,
+        user_namespace: namespace,
         cos_auth_type: 'USER_CREDENTIALS',
-        cos_endpoint: btoa(dataConnectionData[AWS_KEYS.S3_ENDPOINT]),
+        cos_endpoint: atob(dataConnectionData[AWS_KEYS.S3_ENDPOINT]),
         cos_bucket: 'default',
-        cos_username: btoa(dataConnectionData[AWS_KEYS.ACCESS_KEY_ID]),
-        cos_password: btoa(dataConnectionData[AWS_KEYS.SECRET_ACCESS_KEY]),
+        cos_username: atob(dataConnectionData[AWS_KEYS.ACCESS_KEY_ID]),
+        cos_password: atob(dataConnectionData[AWS_KEYS.SECRET_ACCESS_KEY]),
         runtime_type: 'KUBEFLOW_PIPELINES',
       },
       schema_name: 'kfp',
