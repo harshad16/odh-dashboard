@@ -12,11 +12,6 @@ type ModelRegistryKind struct {
 	Status     Status            `json:"status"`
 }
 
-type ModelRegistryAndCredentials struct {
-	ModelRegistry    ModelRegistryKind `json:"modelRegistryKind"`
-	DatabasePassword string            `json:"databasePassword"`
-}
-
 type Metadata struct {
 	Name              string            `json:"name"`
 	Namespace         string            `json:"namespace"`
@@ -58,11 +53,6 @@ const (
 	Postgres DatabaseType = "postgres"
 )
 
-type Entry struct {
-	Name string `json:"name"`
-	Key  string `json:"key"`
-}
-
 type DatabaseConfig struct {
 	DatabaseType                DatabaseType   `json:"databaseType"`
 	Database                    string         `json:"database"`
@@ -71,8 +61,8 @@ type DatabaseConfig struct {
 	Port                        int            `json:"port"`
 	SkipDBCreation              bool           `json:"skipDBCreation"`
 	Username                    string         `json:"username"`
-	SSLRootCertificateConfigMap *Entry         `json:"sslRootCertificateConfigMap,omitempty"`
-	SSLRootCertificateSecret    *Entry         `json:"sslRootCertificateSecret,omitempty"`
+	SSLRootCertificateConfigMap string         `json:"sslRootCertificateConfigMap"`
+	SSLRootCertificateSecret    string         `json:"sslRootCertificateSecret"`
 }
 
 type PasswordSecret struct {
