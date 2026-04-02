@@ -50,7 +50,8 @@ export type MockDashboardConfigType = {
   observabilityDashboard?: boolean;
   hardwareProfileOrder?: string[];
   pvcSize?: string;
-  mlflowPipelines?: boolean;
+  mlflow?: boolean;
+  notebooksV2?: boolean;
   mcpCatalog?: boolean;
   projectRBAC?: boolean;
   disableLLMd?: boolean;
@@ -67,7 +68,8 @@ export type MockDashboardConfigType = {
 };
 
 export const mockDashboardConfig = ({
-  mlflowPipelines = false,
+  mlflow = false,
+  notebooksV2 = false,
   projectRBAC = false,
   disableInfo = false,
   disableSupport = false,
@@ -244,7 +246,8 @@ export const mockDashboardConfig = ({
   },
   spec: {
     dashboardConfig: {
-      mlflowPipelines,
+      mlflow,
+      notebooksV2,
       projectRBAC,
       enablement: true,
       disableInfo,

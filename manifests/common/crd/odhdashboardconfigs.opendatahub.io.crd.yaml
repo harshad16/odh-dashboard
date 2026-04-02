@@ -119,8 +119,7 @@ spec:
                       type: boolean
                     mlflow:
                       type: boolean
-                      description: 'DEPRECATED: MLflow is now always enabled when the operator component is present. This field will be removed in a future version.'
-                    mcpCatalog:
+                    notebooksV2:
                       type: boolean
                     projectRBAC:
                       type: boolean

@@ -8,7 +8,8 @@ export const techPreviewFlags = {
   modelAsService: false,
   maasAuthPolicies: false,
   aiAssetCustomEndpoints: false,
-  mlflowPipelines: false,
+  mlflow: false,
+  notebooksV2: false,
   mcpCatalog: false,
   projectRBAC: true,
   observabilityDashboard: false,
@@ -220,9 +221,8 @@ export const SupportedAreasStateMap: SupportedAreasState = {
   [SupportedArea.MLFLOW]: {
     requiredComponents: [DataScienceStackComponent.MLFLOW],
   },
-  [SupportedArea.MLFLOW_PIPELINES]: {
-    featureFlags: ['mlflowPipelines'],
-    requiredComponents: [DataScienceStackComponent.DS_PIPELINES, DataScienceStackComponent.MLFLOW],
+  [SupportedArea.NOTEBOOKS_V2]: {
+    featureFlags: ['notebooksV2'],
   },
   [SupportedArea.PROJECT_RBAC_SETTINGS]: {
     featureFlags: ['projectRBAC'],
