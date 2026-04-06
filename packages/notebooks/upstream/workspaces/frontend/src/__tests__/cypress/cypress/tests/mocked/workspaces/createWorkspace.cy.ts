@@ -1251,10 +1251,10 @@ describe('Create workspace', () => {
         cy.wait('@listSecrets');
 
         // Wait for the create button to be visible
-        cy.findByTestId('create-new-secret-button').should('be.visible');
+        cy.findByTestId('attach-new-secret-button').should('be.visible');
 
         // Create a new secret
-        createWorkspace.clickCreateNewSecret();
+        createWorkspace.clickAttachNewSecret();
         secretsCreateModal.assertModalExists();
         secretsCreateModal.typeSecretName(secretName);
         secretsCreateModal.typeKey(0, key1);
@@ -1315,7 +1315,7 @@ describe('Create workspace', () => {
         cy.wait('@listSecrets');
 
         // Wait for the create button to be visible
-        cy.findByTestId('create-new-secret-button').should('be.visible');
+        cy.findByTestId('attach-new-secret-button').should('be.visible');
 
         // Create first secret
         cy.interceptApi(
@@ -1336,7 +1336,7 @@ describe('Create workspace', () => {
           { statusCode: 200, body: { data: {} } },
         ).as('deleteSecret1');
 
-        createWorkspace.clickCreateNewSecret();
+        createWorkspace.clickAttachNewSecret();
         secretsCreateModal.typeSecretName(secret1);
         secretsCreateModal.typeKey(0, 'key1');
         secretsCreateModal.typeValue(0, 'value1');
@@ -1362,7 +1362,7 @@ describe('Create workspace', () => {
           { statusCode: 200, body: { data: {} } },
         ).as('deleteSecret2');
 
-        createWorkspace.clickCreateNewSecret();
+        createWorkspace.clickAttachNewSecret();
         secretsCreateModal.typeSecretName(secret2);
         secretsCreateModal.typeKey(0, 'key2');
         secretsCreateModal.typeValue(0, 'value2');

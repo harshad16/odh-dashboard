@@ -15,6 +15,7 @@ type ThemeAwareFormGroupWrapperProps = {
   role?: string; // Optional role attribute for accessibility
   isInline?: boolean; // Optional isInline prop for FormGroup
   skipFieldset?: boolean; // If true, skip wrapping in FormFieldset (for NumberInput, etc.)
+  labelHelp?: React.ReactElement; // Optional label help content (e.g. edit icon)
 };
 
 const ThemeAwareFormGroupWrapper: React.FC<ThemeAwareFormGroupWrapperProps> = ({
@@ -28,6 +29,7 @@ const ThemeAwareFormGroupWrapper: React.FC<ThemeAwareFormGroupWrapperProps> = ({
   role,
   isInline,
   skipFieldset = false,
+  labelHelp,
 }) => {
   const { isMUITheme } = useThemeContext();
 
@@ -58,12 +60,13 @@ const ThemeAwareFormGroupWrapper: React.FC<ThemeAwareFormGroupWrapperProps> = ({
     return (
       <>
         <FormGroup
-          className={`${className || ''} ${hasError ? 'pf-m-error' : ''}`.trim()} // Apply className and error state class
+          className={`${className || ''} ${hasError ? 'pf-m-error' : ''}`.trim()}
           label={label}
           isRequired={isRequired}
           fieldId={fieldId}
           role={role}
           isInline={isInline}
+          labelHelp={labelHelp}
         >
           {children}
         </FormGroup>

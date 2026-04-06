@@ -241,117 +241,11 @@ class WorkspaceForm {
   assertLabelCategoryNotExists(labelKey: string): void {
     cy.findByTestId(`label-category-${labelKey}`).should('not.exist');
   }
-
-  findKindLogo(kindName: string): Cypress.Chainable<JQuery<HTMLElement>> {
-    return cy.findByTestId(`kind-logo-${kindName}`);
-  }
-
-  findOptionCardHeader(cardId: string): Cypress.Chainable<JQuery<HTMLElement>> {
-    return cy.findByTestId(`option-card-header-${cardId.replace(/ /g, '-')}`);
-  }
-
-  findOptionCardDescription(cardId: string): Cypress.Chainable<JQuery<HTMLElement>> {
-    return cy.findByTestId(`option-card-description-${cardId.replace(/ /g, '-')}`);
-  }
-
-  findOptionCardIcons(cardId: string): Cypress.Chainable<JQuery<HTMLElement>> {
-    return cy.findByTestId(`option-card-icons-${cardId.replace(/ /g, '-')}`);
-  }
-
-  findFilterSidebar(): Cypress.Chainable<JQuery<HTMLElement>> {
-    return cy.findByTestId('filter-sidebar');
-  }
-
-  findRedirectSummaryIcon(step: number, suffix: string): Cypress.Chainable<JQuery<HTMLElement>> {
-    return cy.findByTestId(`redirect-icon-${step}-${suffix}`);
-  }
-
-  findRedirectPopoverContent(step: number, suffix: string): Cypress.Chainable<JQuery<HTMLElement>> {
-    return cy.findByTestId(`redirect-popover-content-${step}-${suffix}`);
-  }
-
-  assertPopoverContentVisible(
-    step: number,
-    suffix: string,
-  ): Cypress.Chainable<JQuery<HTMLElement>> {
-    return this.findRedirectPopoverContent(step, suffix).should('be.visible');
-  }
-
-  assertPopoverContentNotExist(step: number, suffix: string): void {
-    cy.findByTestId(`redirect-popover-content-${step}-${suffix}`).should('not.exist');
-  }
-
-  findLabelFilterPanel(): Cypress.Chainable<JQuery<HTMLElement>> {
-    return cy.findByTestId('label-filter-panel');
-  }
-
-  findLabelCategory(labelKey: string): Cypress.Chainable<JQuery<HTMLElement>> {
-    return cy.findByTestId(`label-category-${labelKey}`);
-  }
-
-  clickLabelFilter(labelKey: string, labelValue: string): Cypress.Chainable<JQuery<HTMLElement>> {
-    return cy
-      .findByTestId(`label-filter-${labelKey}-${labelValue}`)
-      .find('input[type="checkbox"]')
-      .click();
-  }
-
-  assertLabelFilterChecked(
-    labelKey: string,
-    labelValue: string,
-  ): Cypress.Chainable<JQuery<HTMLElement>> {
-    return cy
-      .findByTestId(`label-filter-${labelKey}-${labelValue}`)
-      .find('input[type="checkbox"]')
-      .should('be.checked');
-  }
-
-  assertLabelFilterNotChecked(
-    labelKey: string,
-    labelValue: string,
-  ): Cypress.Chainable<JQuery<HTMLElement>> {
-    return cy
-      .findByTestId(`label-filter-${labelKey}-${labelValue}`)
-      .find('input[type="checkbox"]')
-      .should('not.be.checked');
-  }
-
-  findExtraFilter(filterKey: string): Cypress.Chainable<JQuery<HTMLElement>> {
-    return cy.findByTestId(`extra-filter-${filterKey}`);
-  }
-
-  clickExtraFilter(filterKey: string): Cypress.Chainable<JQuery<HTMLElement>> {
-    return this.findExtraFilter(filterKey).find('input[type="checkbox"]').click();
-  }
-
-  checkExtraFilter(filterKey: string): Cypress.Chainable<JQuery<HTMLElement>> {
-    return this.findExtraFilter(filterKey).find('input[type="checkbox"]').check();
-  }
-
-  uncheckExtraFilter(filterKey: string): Cypress.Chainable<JQuery<HTMLElement>> {
-    return this.findExtraFilter(filterKey).find('input[type="checkbox"]').uncheck();
-  }
-
-  assertExtraFilterChecked(filterKey: string): Cypress.Chainable<JQuery<HTMLElement>> {
-    return this.findExtraFilter(filterKey).find('input[type="checkbox"]').should('be.checked');
-  }
-
-  assertExtraFilterNotChecked(filterKey: string): Cypress.Chainable<JQuery<HTMLElement>> {
-    return this.findExtraFilter(filterKey).find('input[type="checkbox"]').should('not.be.checked');
-  }
-
-  assertLabelCategoryExists(labelKey: string): Cypress.Chainable<JQuery<HTMLElement>> {
-    return this.findLabelCategory(labelKey).should('exist');
-  }
-
-  assertLabelCategoryNotExists(labelKey: string): void {
-    cy.findByTestId(`label-category-${labelKey}`).should('not.exist');
-  }
 }
 
 class SecretsCreateModal {
   find() {
-    return cy.get('[aria-labelledby="create-secret-modal-title"]');
+    return cy.findByTestId('secrets-modal');
   }
 
   assertModalExists() {
@@ -388,6 +282,7 @@ class SecretsCreateModal {
 
   findKeyInput(index = 0) {
     return this.find().findAllByTestId('key-input').eq(index);
+    return this.find().findAllByTestId('key-input').eq(index);
   }
 
   typeKey(index: number, key: string) {
@@ -400,6 +295,7 @@ class SecretsCreateModal {
 
   findValueInput(index = 0) {
     return this.find().findAllByTestId('value-input').eq(index);
+    return this.find().findAllByTestId('value-input').eq(index);
   }
 
   typeValue(index: number, value: string) {
@@ -411,6 +307,7 @@ class SecretsCreateModal {
   }
 
   findRemoveKeyValuePairButton(index = 0) {
+    return this.find().findAllByTestId('remove-key-value-pair').eq(index);
     return this.find().findAllByTestId('remove-key-value-pair').eq(index);
   }
 
@@ -436,6 +333,7 @@ class SecretsCreateModal {
 
   findCreateButton() {
     return cy.findByTestId('secret-modal-submit-button');
+    return cy.findByTestId('secret-modal-submit-button');
   }
 
   clickCreate() {
@@ -452,6 +350,7 @@ class SecretsCreateModal {
 
   findCancelButton() {
     return cy.findByTestId('secret-modal-cancel-button');
+    return cy.findByTestId('secret-modal-cancel-button');
   }
 
   clickCancel() {
@@ -459,6 +358,7 @@ class SecretsCreateModal {
   }
 
   findErrorAlert() {
+    return this.find().find('[data-testid="error-alert"]');
     return this.find().find('[data-testid="error-alert"]');
   }
 

@@ -8,9 +8,9 @@ import {
 import { ExpandableSection } from '@patternfly/react-core/dist/esm/components/ExpandableSection';
 import { HelperText, HelperTextItem } from '@patternfly/react-core/dist/esm/components/HelperText';
 import { Switch } from '@patternfly/react-core/dist/esm/components/Switch';
-import { WorkspaceKindPodTemplateData, WorkspacesPodVolumeMountValue } from '~/app/types';
+import { WorkspaceKindPodTemplateData } from '~/app/types';
 import { EditableRowsTable } from '~/app/pages/WorkspaceKinds/Form/EditableRowsTable';
-import { ResourceInputWrapper } from '~/shared/components/ResourceInputWrapper';
+import { ResourceInputWrapper } from '~/app/pages/WorkspaceKinds/Form/podConfig/ResourceInputWrapper';
 import { WorkspaceFormPropertiesVolumes } from '~/app/pages/Workspaces/Form/properties/WorkspaceFormPropertiesVolumes';
 
 interface WorkspaceKindFormPodTemplateProps {
@@ -76,6 +76,7 @@ export const WorkspaceKindFormPodTemplate: React.FC<WorkspaceKindFormPodTemplate
           }
         >
           <EditableRowsTable
+          <EditableRowsTable
             rows={Object.entries(podTemplate.podMetadata.labels).map((entry) => ({
               key: entry[0],
               value: entry[1],
@@ -93,6 +94,7 @@ export const WorkspaceKindFormPodTemplate: React.FC<WorkspaceKindFormPodTemplate
               });
             }}
           />
+          <EditableRowsTable
           <EditableRowsTable
             title="Annotations"
             description="Use annotations to attach arbitrary non-identifying metadata to Kubernetes objects."

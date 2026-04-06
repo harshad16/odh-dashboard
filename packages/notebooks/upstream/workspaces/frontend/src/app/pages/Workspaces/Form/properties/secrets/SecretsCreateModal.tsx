@@ -1,6 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { Button } from '@patternfly/react-core/dist/esm/components/Button';
-import { Divider } from '@patternfly/react-core/dist/esm/components/Divider';
 import { Form, FormGroup } from '@patternfly/react-core/dist/esm/components/Form';
 import { TextInput } from '@patternfly/react-core/dist/esm/components/TextInput';
 import { Switch } from '@patternfly/react-core/dist/esm/components/Switch';
@@ -22,7 +21,7 @@ import { useNamespaceSelectorWrapper } from '~/app/hooks/useNamespaceSelectorWra
 import { SecretsSecretListItem } from '~/generated/data-contracts';
 import ThemeAwareFormGroupWrapper from '~/shared/components/ThemeAwareFormGroupWrapper';
 import useSecretContents, { SecretKeyValuePair } from '~/app/hooks/useSecretContents';
-import SecretKeyValuePairInput from './SecretKeyValuePairInput';
+import { EditableRowsTable } from '~/app/pages/WorkspaceKinds/Form/EditableRowsTable';
 
 interface SecretsCreateModalProps {
   isOpen: boolean;
@@ -99,6 +98,11 @@ export const SecretsCreateModal: React.FC<SecretsCreateModalProps> = ({
       }
       if (name.length > 63) {
         return 'Secret name must be at most 63 characters';
+      if (name.length < 2) {
+        return 'Secret name must be at least 2 characters';
+      }
+      if (name.length > 63) {
+        return 'Secret name must be at most 63 characters';
       }
       if (!SECRET_NAME_REGEX.test(name)) {
         return 'Secret name must consist of lower case alphanumeric characters, hyphens, or dots, and must start and end with an alphanumeric character';
@@ -146,21 +150,6 @@ export const SecretsCreateModal: React.FC<SecretsCreateModalProps> = ({
 
     return null;
   }, [secretName, keyValuePairs, validateSecretName, validateKey]);
-
-  const resetForm = useCallback(() => {
-    setSecretName('');
-    setKeyValuePairs([EMPTY_KEY_VALUE_PAIR]);
-    setImmutable(false);
-    setError(null);
-  }, []);
-
-  const buildContentsPayload = useCallback(() => {
-    const contents: Record<string, { base64?: string }> = {};
-    keyValuePairs.forEach((pair) => {
-      contents[pair.key] = { base64: btoa(pair.value) };
-    });
-    return contents;
-  }, [keyValuePairs]);
 
   const resetForm = useCallback(() => {
     setSecretName('');
@@ -242,11 +231,12 @@ export const SecretsCreateModal: React.FC<SecretsCreateModalProps> = ({
 
   const { isMUITheme } = useThemeContext();
 
-  const modalTitle = isEditMode ? 'Edit Secret' : 'Create Secret';
-  const submitButtonText = isEditMode ? 'Save' : 'Create';
+  const modalTitle = isEditMode ? 'Edit Secret' : 'Attach New Secret';
+  const submitButtonText = isEditMode ? 'Save' : 'Attach';
 
   return (
     <Modal
+      variant={ModalVariant.large}
       variant={ModalVariant.large}
       isOpen={isOpen}
       onClose={handleClose}
@@ -256,6 +246,7 @@ export const SecretsCreateModal: React.FC<SecretsCreateModalProps> = ({
       <ModalHeader title={modalTitle} labelId="create-secret-modal-title" />
       <ModalBody>
         {error && (
+          <Alert variant={AlertVariant.danger} isInline title="Error" data-testid="error-alert">
           <Alert variant={AlertVariant.danger} isInline title="Error" data-testid="error-alert">
             {error}
           </Alert>
@@ -360,6 +351,17 @@ export const SecretsCreateModal: React.FC<SecretsCreateModalProps> = ({
             isExpanded
             minRows={1}
           />
+          <EditableRowsTable
+            rows={keyValuePairs}
+            setRows={setKeyValuePairs}
+            title="Secret data"
+            description="Key/value pairs stored in the secret."
+            buttonLabel="key-value pair"
+            valueInputType="password"
+            addButtonTestId="another-key-value-pair-button"
+            isExpanded
+            minRows={1}
+          />
         </Form>
       </ModalBody>
       <ModalFooter>
@@ -371,12 +373,20 @@ export const SecretsCreateModal: React.FC<SecretsCreateModalProps> = ({
           isDisabled={
             isSubmitting ||
             (isEditMode && !isSecretContentsLoaded) ||
-            (isEditMode && secretToEdit.immutable)
+            (isEditMode && secretToEdit.immutable) ||
+            (isEditMode && !secretToEdit.canUpdate)
           }
           data-testid="secret-modal-submit-button"
         >
           {submitButtonText}
         </Button>
+        <Button
+          key="cancel"
+          variant="link"
+          onClick={handleClose}
+          isDisabled={isSubmitting}
+          data-testid="secret-modal-cancel-button"
+        >
         <Button
           key="cancel"
           variant="link"
