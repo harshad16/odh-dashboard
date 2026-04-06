@@ -12,6 +12,7 @@ import ToastNotifications from '~/app/standalone/ToastNotifications';
 import NavBar from '~/app/standalone/NavBar';
 import NavSidebar from '~/app/standalone/NavSidebar';
 import PreGABanner from '~/app/standalone/PreGABanner';
+import { useNamespaceSelectorWrapper } from '~/app/hooks/useNamespaceSelectorWrapper';
 
 const App: React.FC = () => {
   const { config } = useModularArchContext();
@@ -26,30 +27,28 @@ const App: React.FC = () => {
         <AppContext.Consumer>
           {(context) => (
             <NotebookContextProvider>
-              <NamespaceContextProvider>
-                <Page
-                  mainContainerId="primary-app-container"
-                  isContentFilled
-                  masthead={
-                    isStandalone ? (
-                      <NavBar
-                        username={context?.user?.userId}
-                        onLogout={() => {
-                          logout().then(() => window.location.reload());
-                        }}
-                      />
-                    ) : (
-                      ''
-                    )
-                  }
-                  isManagedSidebar={isStandalone}
-                  sidebar={isStandalone ? <NavSidebar /> : <PageSidebar isSidebarOpen={false} />}
-                >
-                  <PreGABanner />
-                  <AppRoutes />
-                  <ToastNotifications />
-                </Page>
-              </NamespaceContextProvider>
+              <Page
+                mainContainerId="primary-app-container"
+                isContentFilled
+                masthead={
+                  isStandalone ? (
+                    <NavBar
+                      username={context?.user?.userId}
+                      onLogout={() => {
+                        logout().then(() => window.location.reload());
+                      }}
+                    />
+                  ) : (
+                    ''
+                  )
+                }
+                isManagedSidebar={isStandalone}
+                sidebar={isStandalone ? <NavSidebar /> : <PageSidebar isSidebarOpen={false} />}
+              >
+                <PreGABanner />
+                <AppRoutes />
+                <ToastNotifications />
+              </Page>
             </NotebookContextProvider>
           )}
         </AppContext.Consumer>

@@ -139,21 +139,27 @@ const WorkspaceFormPropertiesSelection: React.FunctionComponent<
                   setVolumes={(volumes) => onSelect({ ...selectedProperties, volumes })}
                   excludedPvcNames={homePvcNames}
                 />
-              </FormGroup>
-            )}
-          </ExpandableSection>
-          {!isDataVolumesExpanded && dataVolumesInfo}
-          <ExpandableSection
-            toggleText="Secrets"
-            data-testid="secrets-expandable-section"
-            onToggle={() => setIsSecretsExpanded((prev) => !prev)}
-            isExpanded={isSecretsExpanded}
-          >
-            {secretsInfo}
-            {isSecretsExpanded && (
-              <FormGroup
-                fieldId="secrets-table"
-                className="workspace-form__form-group--spaced pf-v6-u-pl-lg"
+              </ThemeAwareFormGroupWrapper>
+              {mode === 'update' && (
+                <HelperText>
+                  <HelperTextItem
+                    variant="default"
+                    data-testid="workspace-name-cannot-be-changed-helper"
+                    icon={
+                      <InfoCircleIcon
+                        style={{ color: 'var(--pf-t--global--icon--color--status--info--default)' }}
+                      />
+                    }
+                  >
+                    Workspace name cannot be changed after creation
+                  </HelperTextItem>
+                </HelperText>
+              )}
+              <ExpandableSection
+                toggleText="Volumes"
+                onToggle={() => setIsVolumesExpanded((prev) => !prev)}
+                isExpanded={isVolumesExpanded}
+                isIndented
               >
                 <WorkspaceFormPropertiesSecrets
                   secrets={selectedProperties.secrets}

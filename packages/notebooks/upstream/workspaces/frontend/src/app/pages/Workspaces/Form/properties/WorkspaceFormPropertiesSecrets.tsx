@@ -33,10 +33,7 @@ import {
 import { useNamespaceSelectorWrapper } from '~/app/hooks/useNamespaceSelectorWrapper';
 import { SecretsSecretListItem } from '~/generated/data-contracts';
 import { useNotebookAPI } from '~/app/hooks/useNotebookAPI';
-import { WorkspacesPodSecretMountValue } from '~/app/types';
-import { ConfirmModal } from '~/shared/components/ConfirmModal';
-import { useSecretKeys } from '~/app/hooks/useSecretKeys';
-import { MountPathField } from '~/app/pages/Workspaces/Form/MountPathField';
+import { useNamespaceSelectorWrapper } from '~/app/hooks/useNamespaceSelectorWrapper';
 import { SecretsCreateModal } from './secrets/SecretsCreateModal';
 import { SecretsAttachModal } from './secrets/SecretsAttachModal';
 
@@ -65,7 +62,6 @@ export const WorkspaceFormPropertiesSecrets: React.FC<WorkspaceFormPropertiesSec
 
   const { api } = useNotebookAPI();
   const { selectedNamespace } = useNamespaceSelectorWrapper();
-  const { getSecretKeysState, fetchSecretKeys } = useSecretKeys();
 
   useEffect(() => {
     const fetchSecrets = async () => {
