@@ -205,10 +205,10 @@ describe('Filter Pod Configs by Labels', () => {
       createWorkspace.assertNoResultsFound();
     });
 
-    it('should display label keys without capitalization', () => {
-      createWorkspace.findLabelCategory('cpu').should('contain', 'cpu');
-      createWorkspace.findLabelCategory('memory').should('contain', 'memory');
-      createWorkspace.findLabelCategory('gpu').should('contain', 'gpu');
+    it('should format label keys correctly', () => {
+      createWorkspace.findLabelCategory('cpu').should('contain', 'CPU');
+      createWorkspace.findLabelCategory('memory').should('contain', 'Memory');
+      createWorkspace.findLabelCategory('gpu').should('contain', 'GPU');
     });
   });
 
@@ -237,11 +237,9 @@ describe('Filter Pod Configs by Labels', () => {
     });
   });
 
-  describe('Extra filters for pod configs', () => {
-    it('should display extra filters category with unchecked filters when no options are hidden or redirected', () => {
-      cy.findByTestId('extra-filters-category').should('exist');
-      cy.findByTestId('extra-filter-showHidden').find('input').should('not.be.checked');
-      cy.findByTestId('extra-filter-showRedirected').find('input').should('not.be.checked');
+  describe('No extra filters', () => {
+    it('should not display extra filters category for pod configs', () => {
+      cy.findByTestId('extra-filters-category').should('not.exist');
     });
   });
 });

@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useImperativeHandle, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   FilterSidePanel,
   FilterSidePanelCategory,
@@ -16,16 +16,10 @@ export type ExtraFilter<T> = {
   matchesFilter: (obj: LabelledObject<T>, value: boolean) => boolean;
 };
 
-export type FilterControlHandle = {
-  clearAllFilters: () => void;
-  setExtraFilter: (key: string, value: boolean) => void;
-};
-
 type FilterByLabelsProps<T> = {
   labelledObjects: LabelledObject<T>[];
   setLabelledObjects: (labelledObjects: LabelledObject<T>[]) => void;
   extraFilters?: ExtraFilter<T>[];
-  filterControlRef?: React.Ref<FilterControlHandle>;
 };
 
 export const FilterByLabels = <T,>(props: FilterByLabelsProps<T>): React.ReactElement => {
@@ -37,9 +31,17 @@ export const FilterByLabels = <T,>(props: FilterByLabelsProps<T>): React.ReactEl
       return extraFiltersMap;
     },
   );
+  const [selectedExtraFilters, setSelectedExtraFilters] = useState<Map<string, ExtraFilter<T>>>(
+    () => {
+      const extraFiltersMap = new Map();
+      props.extraFilters?.map((extraFilter) => extraFiltersMap.set(extraFilter.key, extraFilter));
+      return extraFiltersMap;
+    },
+  );
 
   const filterMap = useMemo(() => {
     const labelsMap = new Map<string, Set<string>>();
+    props.labelledObjects
     props.labelledObjects
       .flatMap((labelledObject) => labelledObject.labels)
       .forEach((label) => {
@@ -50,11 +52,43 @@ export const FilterByLabels = <T,>(props: FilterByLabelsProps<T>): React.ReactEl
       });
     return labelsMap;
   }, [props.labelledObjects]);
+  }, [props.labelledObjects]);
 
+  const isLabelChecked = useCallback(
   const isLabelChecked = useCallback(
     (label: string, labelValue: string) => selectedLabels.get(label)?.has(labelValue),
     [selectedLabels],
   );
+
+  const updateLabelledObjects = useCallback(() => {
+    props.setLabelledObjects(
+      props.labelledObjects.filter(
+        (labelledObject) =>
+          [...selectedExtraFilters.values()].reduce(
+            (accumulator, selectedExtraFilter) =>
+              accumulator &&
+              selectedExtraFilter.matchesFilter(labelledObject, selectedExtraFilter.value),
+            true,
+          ) &&
+          [...selectedLabels.entries()].reduce(
+            (accumulator, [selectedLabelKey, selectedLabelValues]) => {
+              if (selectedLabelValues.size > 0) {
+                return (
+                  accumulator &&
+                  labelledObject.labels.some(
+                    (imageLabel) =>
+                      imageLabel.key === selectedLabelKey &&
+                      selectedLabelValues.has(imageLabel.value),
+                  )
+                );
+              }
+              return accumulator;
+            },
+            true,
+          ),
+      ),
+    );
+  }, [selectedExtraFilters, selectedLabels, props]);
 
   const updateLabelledObjects = useCallback(() => {
     props.setLabelledObjects(
@@ -130,27 +164,22 @@ export const FilterByLabels = <T,>(props: FilterByLabelsProps<T>): React.ReactEl
     updateLabelledObjects();
   }, [selectedLabels, selectedExtraFilters, updateLabelledObjects]);
 
-  useImperativeHandle(
-    props.filterControlRef,
-    () => ({
-      clearAllFilters: () => {
-        setSelectedLabels(new Map());
-      },
-      setExtraFilter: (key: string, value: boolean) => {
-        const filter = props.extraFilters?.find((f) => f.key === key);
-        if (filter) {
-          setSelectedExtraFilters((prev) => {
-            const newMap = new Map(prev);
-            newMap.set(key, { ...filter, value });
-            return newMap;
-          });
-        }
-      },
-    }),
-    [props.extraFilters],
-  );
-
   return (
+    <FilterSidePanel id="filter-panel" data-testid="label-filter-panel">
+      {selectedExtraFilters.size > 0 && (
+        <FilterSidePanelCategory key="extraFilters" data-testid="extra-filters-category">
+          {[...selectedExtraFilters.values()].map((extraFilter) => (
+            <FilterSidePanelCategoryItem
+              key={extraFilter.key}
+              data-testid={`extra-filter-${extraFilter.key}`}
+              checked={extraFilter.value}
+              onClick={(e) => onChangeExtraFilters(extraFilter, e)}
+            >
+              {extraFilter.label}
+            </FilterSidePanelCategoryItem>
+          ))}
+        </FilterSidePanelCategory>
+      )}
     <FilterSidePanel id="filter-panel" data-testid="label-filter-panel">
       {selectedExtraFilters.size > 0 && (
         <FilterSidePanelCategory key="extraFilters" data-testid="extra-filters-category">
@@ -172,9 +201,16 @@ export const FilterByLabels = <T,>(props: FilterByLabelsProps<T>): React.ReactEl
           data-testid={`label-category-${label}`}
           title={formatLabelKey(label)}
         >
+        <FilterSidePanelCategory
+          key={label}
+          data-testid={`label-category-${label}`}
+          title={formatLabelKey(label)}
+        >
           {Array.from(filterMap.get(label)?.values() ?? []).map((labelValue) => (
             <FilterSidePanelCategoryItem
               key={`${label}|||${labelValue}`}
+              data-testid={`label-filter-${label}-${labelValue}`}
+              checked={isLabelChecked(label, labelValue)}
               data-testid={`label-filter-${label}-${labelValue}`}
               checked={isLabelChecked(label, labelValue)}
               onClick={(e) => onChange(label, labelValue, e)}

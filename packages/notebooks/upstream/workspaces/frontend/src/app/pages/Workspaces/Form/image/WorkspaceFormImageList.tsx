@@ -92,19 +92,27 @@ export const WorkspaceFormImageList: React.FunctionComponent<WorkspaceFormImageL
         {filteredWorkspaceImages.length > 0 && (
           <Gallery hasGutter aria-label="Selectable card container">
             {filteredWorkspaceImages.map((image) => (
-              <WorkspaceFormOptionCard
+              <Card
+                isCompact
+                isSelectable
                 key={image.id}
-                option={image}
-                allOptions={allImages}
+                id={image.id.replace(/ /g, '-')}
                 isSelected={image.id === selectedImage?.id}
-                isDefault={image.id === defaultImageId}
-                onClick={handleCardClick}
-                onChange={onChange}
-                activePopoverId={activePopoverId}
-                pinnedPopoverId={pinnedPopoverId}
-                onActivePopoverChange={setActivePopoverId}
-                onPinnedPopoverChange={setPinnedPopoverId}
-              />
+                onClick={() => handleCardClick(image)}
+              >
+                <CardHeader
+                  selectableActions={{
+                    selectableActionId: `selectable-actions-item-${image.id.replace(/ /g, '-')}`,
+                    selectableActionAriaLabelledby: image.displayName.replace(/ /g, '-'),
+                    name: image.displayName,
+                    variant: 'single',
+                    onChange,
+                  }}
+                >
+                  <CardTitle>{image.displayName}</CardTitle>
+                  <CardBody>{image.id}</CardBody>
+                </CardHeader>
+              </Card>
             ))}
           </Gallery>
         )}

@@ -5,7 +5,6 @@ import { WorkspaceFormImageList } from '~/app/pages/Workspaces/Form/image/Worksp
 import {
   ExtraFilter,
   FilterByLabels,
-  FilterControlHandle,
 } from '~/app/pages/Workspaces/Form/labelFilter/FilterByLabels';
 import { WorkspacekindsImageConfigValue } from '~/generated/data-contracts';
 import { computeDefaultFilterValues } from '~/app/pages/Workspaces/Form/utils/filterDefaults';
@@ -30,75 +29,24 @@ const WorkspaceFormImageSelection: React.FunctionComponent<WorkspaceFormImageSel
   filterControlRef,
 }) => {
   const [filteredImages, setFilteredImages] = useState<WorkspacekindsImageConfigValue[]>(images);
-  const internalFilterControlRef = useRef<FilterControlHandle>(null);
-  const lastEnsuredVisibleImageId = useRef<string | null>(null);
-
-  const defaultFilterValues = useMemo(() => {
-    const defaults = computeDefaultFilterValues(images, defaultImageId);
-    // Also enable filters if selectedImage needs them
-    if (selectedImage) {
-      if (selectedImage.hidden) {
-        defaults.showHidden = true;
-      }
-      if (selectedImage.redirect !== undefined) {
-        defaults.showRedirected = true;
-      }
-    }
-    return defaults;
-  }, [images, defaultImageId, selectedImage]);
 
   const extraFilters: ExtraFilter<WorkspacekindsImageConfigValue>[] = useMemo(
     () => [
       {
         label: 'Show hidden',
-        value: defaultFilterValues.showHidden,
+        value: false,
         key: 'showHidden',
         matchesFilter: (image: WorkspacekindsImageConfigValue, value: boolean) =>
           value || !image.hidden,
       },
       {
         label: 'Show redirected',
-        value: defaultFilterValues.showRedirected,
+        value: false,
         key: 'showRedirected',
         matchesFilter: (image: WorkspacekindsImageConfigValue, value: boolean) =>
           value || image.redirect === undefined,
       },
     ],
-    [defaultFilterValues],
-  );
-
-  useEffect(() => {
-    if (!selectedImage) {
-      return;
-    }
-
-    // Skip deselection if we just ensured this image is visible
-    if (lastEnsuredVisibleImageId.current === selectedImage.id) {
-      lastEnsuredVisibleImageId.current = null;
-      return;
-    }
-
-    const isSelectedInFilteredList = filteredImages.some((image) => image.id === selectedImage.id);
-
-    if (!isSelectedInFilteredList) {
-      onSelect(undefined);
-    }
-  }, [filteredImages, selectedImage, onSelect]);
-
-  useImperativeHandle(
-    filterControlRef,
-    () => ({
-      adaptFiltersForImage: (image: WorkspacekindsImageConfigValue) => {
-        lastEnsuredVisibleImageId.current = image.id;
-        internalFilterControlRef.current?.clearAllFilters();
-        if (image.hidden) {
-          internalFilterControlRef.current?.setExtraFilter('showHidden', true);
-        }
-        if (image.redirect !== undefined) {
-          internalFilterControlRef.current?.setExtraFilter('showRedirected', true);
-        }
-      },
-    }),
     [],
   );
 
@@ -108,9 +56,9 @@ const WorkspaceFormImageSelection: React.FunctionComponent<WorkspaceFormImageSel
         labelledObjects={images}
         setLabelledObjects={(obj) => setFilteredImages(obj as WorkspacekindsImageConfigValue[])}
         extraFilters={extraFilters}
-        filterControlRef={internalFilterControlRef}
       />
     ),
+    [images, setFilteredImages, extraFilters],
     [images, setFilteredImages, extraFilters],
   );
 
