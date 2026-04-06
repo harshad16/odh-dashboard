@@ -18,6 +18,7 @@ package auth
 
 import (
 	"fmt"
+	"log/slog"
 	"net/http"
 	"time"
 
@@ -83,31 +84,44 @@ var resourceGVRMap = map[ResourcePolicyResource]schema.GroupVersionResource{
 	Workspaces:             kubefloworgv1beta1.GroupVersion.WithResource(string(Workspaces)),
 }
 
-// NewResourcePolicy returns a resource policy for the given verb and resource type.
-func NewResourcePolicy(verb ResourcePolicyVerb, resource ResourcePolicyResource, resourceMeta ResourcePolicyResourceMeta) *ResourcePolicy {
-	gvr, ok := resourceGVRMap[resource]
-	if !ok {
-		// this should never happen unless we forgot to update the map
-		panic(fmt.Sprintf("unsupported ResourcePolicyResource: %s", resource))
-	}
-
-	policy := &ResourcePolicy{
-		Verb:         verb,
-		GVR:          gvr,
-		ResourceMeta: resourceMeta,
-	}
-
-	return policy
-}
-
 type ResourcePolicy struct {
 	Verb         ResourcePolicyVerb
 	GVR          schema.GroupVersionResource
 	ResourceMeta ResourcePolicyResourceMeta
 }
 
+// NewResourcePolicy returns a new resource policy based on the provided verb, resource, and resource meta.
+func NewResourcePolicy(verb ResourcePolicyVerb, resource ResourcePolicyResource, resourceMeta ResourcePolicyResourceMeta) *ResourcePolicy {
+	gvr, ok := resourceGVRMap[resource]
+	if !ok {
+		slog.Warn("NewResourcePolicy: unknown resource", "resource", resource)
+	}
+
+	slog.Debug("NewResourcePolicy",
+		"verb", verb,
+		"resource", resource,
+		"gvr", gvr,
+		"resourceMeta", resourceMeta,
+	)
+
+	return &ResourcePolicy{
+		Verb:         verb,
+		GVR:          gvr,
+		ResourceMeta: resourceMeta,
+	}
+}
+
 // AttributesFor returns an authorizer.Attributes which could be used with an authorizer.Authorizer to authorize the user for the resource policy.
 func (p *ResourcePolicy) AttributesFor(u user.Info) authorizer.Attributes {
+	slog.Info("AttributesFor SAR check",
+		"user", u.GetName(),
+		"groups", u.GetGroups(),
+		"verb", p.Verb,
+		"apiGroup", p.GVR.Group,
+		"resource", p.GVR.Resource,
+		"namespace", p.ResourceMeta.Namespace,
+		"name", p.ResourceMeta.Name,
+	)
 	return authorizer.AttributesRecord{
 		User:            u,
 		Verb:            string(p.Verb),
