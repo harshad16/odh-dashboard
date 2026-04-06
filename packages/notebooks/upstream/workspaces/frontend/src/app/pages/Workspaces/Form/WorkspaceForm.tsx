@@ -229,6 +229,7 @@ const WorkspaceForm: React.FC = () => {
           setData('podConfig', defaultPodConfigId);
         }
       }
+      setDrawerExpanded(true);
     },
     [mode, resetData, setData],
   );
@@ -241,6 +242,7 @@ const WorkspaceForm: React.FC = () => {
           imageFilterControlRef.current?.adaptFiltersForImage(image);
         }
         setData('imageConfig', image.id);
+        setDrawerExpanded(true);
       } else {
         setData('imageConfig', undefined);
       }
@@ -256,6 +258,7 @@ const WorkspaceForm: React.FC = () => {
           podConfigFilterControlRef.current?.adaptFiltersForPodConfig(podConfig);
         }
         setData('podConfig', podConfig.id);
+        setDrawerExpanded(true);
       } else {
         setData('podConfig', undefined);
       }
@@ -406,7 +409,6 @@ const WorkspaceForm: React.FC = () => {
                         onSelect={handleImageSelect}
                         images={data.kind?.podTemplate.options.imageConfig.values ?? []}
                         defaultImageId={data.kind?.podTemplate.options.imageConfig.default}
-                        filterControlRef={imageFilterControlRef}
                       />
                     )}
                     {currentStep === WorkspaceFormSteps.PodConfigSelection && (
@@ -415,7 +417,6 @@ const WorkspaceForm: React.FC = () => {
                         onSelect={handlePodConfigSelect}
                         podConfigs={data.kind?.podTemplate.options.podConfig.values ?? []}
                         defaultPodConfigId={data.kind?.podTemplate.options.podConfig.default}
-                        filterControlRef={podConfigFilterControlRef}
                       />
                     )}
                     {currentStep === WorkspaceFormSteps.Properties && (
