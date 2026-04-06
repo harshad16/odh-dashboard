@@ -107,12 +107,9 @@ func (a *App) GetWorkspaceKindHandler(w http.ResponseWriter, r *http.Request, ps
 //	@Failure		500				{object}	ErrorEnvelope				"Internal server error. An unexpected error occurred on the server."
 //	@Router			/workspacekinds [get]
 func (a *App) GetWorkspaceKindsHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	namespace := r.URL.Query().Get(NamespaceFilterQueryParam)
-
-	// validate query parameters
-	var valErrs field.ErrorList
-	if namespace != "" {
-		valErrs = append(valErrs, helper.ValidateKubernetesNamespaceName(field.NewPath(NamespaceFilterQueryParam), namespace)...)
+	// =========================== AUTH ===========================
+	authPolicies := []*auth.ResourcePolicy{
+		auth.NewResourcePolicy(auth.VerbList, auth.WorkspaceKinds, auth.ResourcePolicyResourceMeta{}),
 	}
 
 	if len(valErrs) > 0 {
