@@ -1,5 +1,4 @@
 import React from 'react';
-import { Alert, AlertVariant } from '@patternfly/react-core/dist/esm/components/Alert';
 import { Label, LabelGroup } from '@patternfly/react-core/dist/esm/components/Label';
 import { Flex, FlexItem } from '@patternfly/react-core/dist/esm/layouts/Flex';
 import { Stack, StackItem } from '@patternfly/react-core/dist/esm/layouts/Stack';
@@ -44,35 +43,56 @@ export const validateMountPath = (path: string): string | null => {
 
 /**
  * Returns an error if proposedPath (after normalization) is already in existingMountPaths.
- * Use for attach flow where existing paths are a Set for O(1) lookup.
+ * Use for attach flow where existing paths are a string array.
  */
 export function getMountPathUniquenessError(
-  existingMountPaths: Set<string>,
+  existingMountPaths: string[],
   proposedPath: string,
 ): string | null;
 
-export function getMountPathUniquenessError(
-  existingMountPaths: Set<string>,
+/**
+ * Returns an error if proposedPath (after normalization) is already used by another item.
+ * Use excludeIndex when editing one row so the current row's existing path is ignored.
+ */
+export function getMountPathUniquenessError<T extends { mountPath: string }>(
+  items: T[],
   proposedPath: string,
+  excludeIndex: number,
+): string | null;
+
+export function getMountPathUniquenessError<T extends { mountPath: string }>(
+  existingMountPathsOrItems: string[] | T[],
+  proposedPath: string,
+  excludeIndex?: number,
 ): string | null {
   const normalized = normalizeMountPath(proposedPath);
   if (!normalized) {
     return null;
   }
-  return existingMountPaths.has(normalized) ? 'Mount path is already in use' : null;
+  if (excludeIndex === undefined) {
+    const paths = existingMountPathsOrItems as string[];
+    const duplicate = paths.some((p) => normalizeMountPath(p) === normalized);
+    return duplicate ? 'Mount path is already in use' : null;
+  }
+  const items = existingMountPathsOrItems as T[];
+  const duplicate = items.some(
+    (item, i) => i !== excludeIndex && normalizeMountPath(item.mountPath) === normalized,
+  );
+  return duplicate ? 'Mount path is already in use' : null;
 }
 
 /**
- * Returns the first validation error for a mount path when editing one row.
- * otherMountPaths must be a pre-normalized Set of all paths *except* the row being edited,
- * allowing O(1) uniqueness lookup.
+ * Returns the first validation error for a mount path when editing one row:
+ * format error from validateMountPath, or uniqueness error excluding the row at excludeIndex.
  */
-export function getMountPathValidationError(
-  otherMountPaths: Set<string>,
+export function getMountPathValidationError<T extends { mountPath: string }>(
+  items: T[],
   proposedPath: string,
+  excludeIndex: number,
 ): string | null {
   return (
-    validateMountPath(proposedPath) ?? getMountPathUniquenessError(otherMountPaths, proposedPath)
+    validateMountPath(proposedPath) ??
+    getMountPathUniquenessError(items, proposedPath, excludeIndex)
   );
 }
 
@@ -81,7 +101,7 @@ export function getMountPathValidationError(
  * format error from validateMountPath, or uniqueness error against existing paths.
  */
 export function getMountPathValidationErrorForPaths(
-  existingMountPaths: Set<string>,
+  existingMountPaths: string[],
   proposedPath: string,
 ): string | null {
   return (
@@ -96,32 +116,6 @@ export const isValidDefaultMode = (mode: string): boolean => {
   const permissions = ['0', '4', '5', '6', '7'];
   return Array.from(mode).every((char) => permissions.includes(char));
 };
-
-interface DetachWarningAlertProps {
-  resourceName: string;
-  testId: string;
-  isAttached: boolean;
-}
-
-export const DetachWarningAlert: React.FC<DetachWarningAlertProps> = ({
-  resourceName,
-  testId,
-  isAttached,
-}) => (
-  <>
-    Are you sure you want to detach <strong>{resourceName}</strong>?
-    {!isAttached && (
-      <Alert
-        data-testid={testId}
-        variant={AlertVariant.danger}
-        isInline
-        isPlain
-        className="pf-v6-u-mt-sm"
-        title={`Since ${resourceName} was just created and not yet mounted to a workspace, detaching it will permanently delete it from the namespace.`}
-      />
-    )}
-  </>
-);
 
 export const getUnmountableTooltip = (pvc: PvcsPVCListItem): string | null => {
   if (pvc.canMount) {
@@ -188,7 +182,7 @@ export const buildPVCOptionDescription = (
                     icon={<CubeIcon color="teal" />}
                     isCompact
                     color="teal"
-                    className={!pvc.canMount || isExcluded ? 'pf-m-disabled' : undefined}
+                    className={!pvc.canMount ? 'pf-m-disabled' : undefined}
                   />
                 </FlexItem>
               </Flex>

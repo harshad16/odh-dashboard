@@ -8,9 +8,7 @@ import {
   ModalVariant,
 } from '@patternfly/react-core/dist/esm/components/Modal';
 import { Alert, AlertVariant } from '@patternfly/react-core/dist/esm/components/Alert';
-import { Popover } from '@patternfly/react-core/dist/esm/components/Popover';
-import { OutlinedQuestionCircleIcon } from '@patternfly/react-icons/dist/esm/icons/outlined-question-circle-icon';
-import { Form } from '@patternfly/react-core/dist/esm/components/Form';
+import { Form, FormGroup } from '@patternfly/react-core/dist/esm/components/Form';
 import { Switch } from '@patternfly/react-core/dist/esm/components/Switch';
 import { Stack, StackItem } from '@patternfly/react-core/dist/esm/layouts/Stack';
 import { TypeaheadSelect } from '@patternfly/react-templates';
@@ -74,7 +72,7 @@ export const VolumesAttachModal: React.FC<VolumesAttachModalProps> = ({
 
   const mountPathFormatError = isMountPathEditing ? validateMountPath(mountPath) : null;
   const mountPathUniquenessError = !mountPathFormatError
-    ? getMountPathUniquenessError(mountedPaths, mountPath)
+    ? getMountPathUniquenessError([...mountedPaths], mountPath)
     : null;
   const mountPathError = mountPathFormatError ?? mountPathUniquenessError;
 
@@ -99,7 +97,7 @@ export const VolumesAttachModal: React.FC<VolumesAttachModalProps> = ({
 
   const handleConfirmMountPathEdit = useCallback(() => {
     const err =
-      validateMountPath(mountPath) ?? getMountPathUniquenessError(mountedPaths, mountPath);
+      validateMountPath(mountPath) ?? getMountPathUniquenessError([...mountedPaths], mountPath);
     if (err) {
       return;
     }
@@ -224,28 +222,15 @@ export const VolumesAttachModal: React.FC<VolumesAttachModalProps> = ({
                 isFixed={!!fixedMountPath}
                 fieldId="pvc-mount-path"
               />
-              <ThemeAwareFormGroupWrapper
-                label="Read-only Access"
-                fieldId="pvc-read-only"
-                skipFieldset
-                labelHelp={
-                  <Popover
-                    headerContent="Read-only access"
-                    bodyContent="Mount the volume as read-only when this workspace only needs to read data. This prevents accidental or unintended writes to shared volumes."
-                  >
-                    <OutlinedQuestionCircleIcon />
-                  </Popover>
-                }
-              >
+              <FormGroup fieldId="pvc-read-only" className="pf-v6-u-pt-sm">
                 <Switch
                   id="pvc-read-only-switch"
-                  data-testid="pvc-read-only-switch"
-                  label="Enabled"
-                  hasCheckIcon
+                  label="Read-only access"
                   isChecked={readOnly}
                   onChange={(_ev, checked) => setReadOnly(checked)}
+                  data-testid="pvc-read-only-switch"
                 />
-              </ThemeAwareFormGroupWrapper>
+              </FormGroup>
             </Form>
           </StackItem>
         </Stack>

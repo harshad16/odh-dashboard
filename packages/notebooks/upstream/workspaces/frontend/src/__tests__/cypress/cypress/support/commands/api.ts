@@ -2,7 +2,6 @@ import type { UserSettings } from 'mod-arch-core';
 import type {
   ApiErrorEnvelope,
   ApiNamespaceListEnvelope,
-  ApiPVCCreateEnvelope,
   ApiPVCListEnvelope,
   ApiSecretCreateEnvelope,
   ApiSecretEnvelope,
@@ -101,21 +100,6 @@ declare global {
           type: 'GET /api/:apiVersion/persistentvolumeclaims/:namespace',
           options: { path: { apiVersion: string; namespace: string } },
           response: ApiPVCListEnvelope | ApiErrorEnvelope,
-        ) => Cypress.Chainable<null>) &
-        ((
-          type: 'POST /api/:apiVersion/persistentvolumeclaims/:namespace',
-          options: { path: { apiVersion: string; namespace: string } },
-          response: ApiPVCCreateEnvelope | ApiErrorEnvelope,
-        ) => Cypress.Chainable<null>) &
-        ((
-          type: 'DELETE /api/:apiVersion/persistentvolumeclaims/:namespace/:pvcName',
-          options: { path: { apiVersion: string; namespace: string; pvcName: string } },
-          response: void | ApiErrorEnvelope,
-        ) => Cypress.Chainable<null>) &
-        ((
-          type: 'GET /api/:apiVersion/storageclasses',
-          options: { path: { apiVersion: string } },
-          response: ApiStorageClassListEnvelope | ApiErrorEnvelope,
         ) => Cypress.Chainable<null>) &
         ((
           type: 'GET /api/:apiVersion/secrets/:namespace',
