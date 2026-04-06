@@ -4,7 +4,6 @@ import { workspaceKinds } from '~/__tests__/cypress/cypress/pages/workspaceKinds
 import { NOTEBOOKS_API_VERSION } from '~/__tests__/cypress/cypress/support/commands/api';
 import {
   buildMockNamespace,
-  buildMockPVCCreate,
   buildMockStorageClass,
   buildMockWorkspaceKind,
 } from '~/shared/mock/mockBuilder';
@@ -67,31 +66,27 @@ const setupEditWorkspaceKind = (
     mockModArchResponse([]),
   ).as('listPVCs');
 
-  cy.interceptApi(
-    'GET /api/:apiVersion/storageclasses',
-    { path: { apiVersion: NOTEBOOKS_API_VERSION } },
-    {
-      data: [
-        buildMockStorageClass({
-          name: 'standard',
-          displayName: 'Standard',
-          description: 'Default storage class',
-          canUse: true,
-        }),
-      ],
-    },
-  ).as('listStorageClasses');
+  cy.intercept('GET', `/api/${NOTEBOOKS_API_VERSION}/storageclasses`, {
+    data: [
+      buildMockStorageClass({
+        name: 'standard',
+        displayName: 'Standard',
+        description: 'Default storage class',
+        canUse: true,
+      }),
+    ],
+  }).as('listStorageClasses');
 
-  cy.interceptApi(
-    'POST /api/:apiVersion/persistentvolumeclaims/:namespace',
-    { path: { apiVersion: NOTEBOOKS_API_VERSION, namespace: mockNamespace.name } },
-    mockModArchResponse(buildMockPVCCreate()),
+  cy.intercept(
+    'POST',
+    `/api/${NOTEBOOKS_API_VERSION}/persistentvolumeclaims/${mockNamespace.name}`,
+    { statusCode: 200, body: {} },
   ).as('createPvc');
 
-  cy.interceptApi(
-    'DELETE /api/:apiVersion/persistentvolumeclaims/:namespace/:pvcName',
-    { path: { apiVersion: NOTEBOOKS_API_VERSION, namespace: mockNamespace.name, pvcName: '*' } },
-    undefined,
+  cy.intercept(
+    'DELETE',
+    `/api/${NOTEBOOKS_API_VERSION}/persistentvolumeclaims/${mockNamespace.name}/*`,
+    { statusCode: 200, body: {} },
   ).as('deletePvc');
 
   return { mockWorkspaceKind, mockNamespace };
@@ -835,6 +830,7 @@ describe('Edit workspace kind', () => {
 
       editWorkspaceKind.assertVolumeModalVisible(true);
       editWorkspaceKind.assertVolumeModalTitle('Create New Volume');
+      editWorkspaceKind.assertVolumeModalTitle('Create New Volume');
     });
 
     it('should create a new volume', () => {
@@ -849,6 +845,7 @@ describe('Edit workspace kind', () => {
       editWorkspaceKind.clickCreateVolume();
       editWorkspaceKind.typePvcName('my-pvc');
       editWorkspaceKind.submitVolumeModal();
+      cy.wait('@createPvc');
       cy.wait('@createPvc');
 
       editWorkspaceKind.assertVolumeModalVisible(false);
@@ -868,6 +865,7 @@ describe('Edit workspace kind', () => {
       editWorkspaceKind.toggleReadOnly();
       editWorkspaceKind.assertReadOnlyChecked(true);
       editWorkspaceKind.submitVolumeModal();
+      cy.wait('@createPvc');
       cy.wait('@createPvc');
 
       editWorkspaceKind.assertVolumeCount(1);
@@ -900,15 +898,19 @@ describe('Edit workspace kind', () => {
       editWorkspaceKind.typePvcName('edit-test-pvc');
       editWorkspaceKind.submitVolumeModal();
       cy.wait('@createPvc');
+      cy.wait('@createPvc');
 
       editWorkspaceKind.clickVolumeRowKebab(0);
+      editWorkspaceKind.clickEditVolume('edit-test-pvc');
       editWorkspaceKind.clickEditVolume('edit-test-pvc');
 
       editWorkspaceKind.assertVolumeModalVisible(true);
       editWorkspaceKind.assertVolumeModalTitle('Edit Volume');
       editWorkspaceKind.assertMountPath('/data/edit-test-pvc');
+      editWorkspaceKind.assertMountPath('/data/edit-test-pvc');
     });
 
+    it('should edit an existing volume mount path', () => {
     it('should edit an existing volume mount path', () => {
       const { mockWorkspaceKind } = setupEditWorkspaceKind();
 
@@ -920,14 +922,17 @@ describe('Edit workspace kind', () => {
       editWorkspaceKind.typePvcName('original-pvc');
       editWorkspaceKind.submitVolumeModal();
       cy.wait('@createPvc');
+      cy.wait('@createPvc');
 
       editWorkspaceKind.clickVolumeRowKebab(0);
+      editWorkspaceKind.clickEditVolume('original-pvc');
       editWorkspaceKind.clickEditVolume('original-pvc');
 
       editWorkspaceKind.typeMountPath('/edited');
       editWorkspaceKind.submitVolumeModal();
 
       editWorkspaceKind.assertVolumeCount(1);
+      editWorkspaceKind.assertVolumeInTable('original-pvc');
       editWorkspaceKind.assertVolumeInTable('original-pvc');
     });
 
@@ -941,6 +946,7 @@ describe('Edit workspace kind', () => {
       editWorkspaceKind.clickCreateVolume();
       editWorkspaceKind.typePvcName('detach-test-pvc');
       editWorkspaceKind.submitVolumeModal();
+      cy.wait('@createPvc');
       cy.wait('@createPvc');
 
       editWorkspaceKind.clickVolumeRowKebab(0);
@@ -959,6 +965,7 @@ describe('Edit workspace kind', () => {
       editWorkspaceKind.clickCreateVolume();
       editWorkspaceKind.typePvcName('cancel-detach-pvc');
       editWorkspaceKind.submitVolumeModal();
+      cy.wait('@createPvc');
       cy.wait('@createPvc');
 
       editWorkspaceKind.clickVolumeRowKebab(0);
@@ -980,6 +987,7 @@ describe('Edit workspace kind', () => {
       editWorkspaceKind.clickCreateVolume();
       editWorkspaceKind.typePvcName('detach-pvc');
       editWorkspaceKind.submitVolumeModal();
+      cy.wait('@createPvc');
       cy.wait('@createPvc');
 
       editWorkspaceKind.assertVolumeCount(1);

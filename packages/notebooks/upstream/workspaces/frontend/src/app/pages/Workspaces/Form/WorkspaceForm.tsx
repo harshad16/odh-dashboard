@@ -123,6 +123,7 @@ const WorkspaceForm: React.FC = () => {
           return !!data.podConfig;
         case WorkspaceFormSteps.Properties:
           return !!data.properties.workspaceName.trim() && !!data.properties.homeVolume;
+          return !!data.properties.workspaceName.trim() && !!data.properties.homeVolume;
         default:
           return false;
       }
@@ -134,6 +135,13 @@ const WorkspaceForm: React.FC = () => {
       data.properties.workspaceName,
       data.properties.homeVolume,
     ],
+  );
+
+  const showDrawer = useCallback(
+    (step: WorkspaceFormSteps) =>
+      // Only show drawer for steps that have drawer content
+      step !== WorkspaceFormSteps.Properties && isStepValid(step),
+    [isStepValid],
   );
 
   const previousStep = useCallback(() => {
