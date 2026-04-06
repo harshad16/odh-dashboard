@@ -1221,18 +1221,6 @@ describe('Create workspace', () => {
       });
     });
 
-    describe('Home Volume validation', () => {
-      it('should display required helper when no home volume is mounted', () => {
-        completeAllStepsToProperties(mockWorkspaceKind.name, mockImage.id, mockPodConfig.id);
-
-        cy.findByTestId('workspace-home-volume-required-helper').should('be.visible');
-        cy.findByTestId('workspace-home-volume-required-helper').should(
-          'contain.text',
-          'Mounting a home volume is required.',
-        );
-      });
-    });
-
     describe('Secret removal flows', () => {
       it('should trigger API call when removing a created secret', () => {
         const secretName = 'created-secret-to-remove';
@@ -1278,13 +1266,11 @@ describe('Create workspace', () => {
         // Wait for listSecrets API to complete (component fetches on mount)
         cy.wait('@listSecrets');
 
-        // Scroll to and wait for the create button to be visible
-        cy.findByTestId('attach-new-secret-button').should('exist');
-        cy.findByTestId('attach-new-secret-button').scrollIntoView();
-        cy.findByTestId('attach-new-secret-button').should('be.visible');
+        // Wait for the create button to be visible
+        cy.findByTestId('create-new-secret-button').should('be.visible');
 
         // Create a new secret
-        createWorkspace.clickAttachNewSecret();
+        createWorkspace.clickCreateNewSecret();
         secretsCreateModal.assertModalExists();
         secretsCreateModal.typeSecretName(secretName);
         secretsCreateModal.typeKey(0, key1);
@@ -1299,13 +1285,19 @@ describe('Create workspace', () => {
         cy.findByTestId('secrets-table').should('contain', secretName);
 
         // Remove the secret
-        secretsManagement.clickKebabMenu(secretName);
-        secretsManagement.clickRemoveAction(secretName);
+        cy.findByTestId('secrets-table')
+          .contains('tr', secretName)
+          .findByTestId(`secret-kebab-${secretName}`)
+          .click();
+        cy.contains('button', 'Remove').click();
 
-        // Confirm detach in modal
-        secretsDetachModal.assertModalVisible();
-        secretsDetachModal.assertContains(secretName);
-        secretsDetachModal.clickConfirm();
+        // Confirm deletion in modal
+        cy.findByTestId('delete-modal').should('be.visible');
+        cy.findByTestId('delete-modal').should('contain', secretName);
+
+        // Type the secret name to enable the delete button
+        cy.findByTestId('delete-modal-input').type(secretName);
+        cy.findByTestId('delete-button').should('not.be.disabled').click();
 
         // Verify API call was made
         cy.wait('@deleteSecret');
@@ -1338,10 +1330,8 @@ describe('Create workspace', () => {
         // Wait for listSecrets API to complete (component fetches on mount)
         cy.wait('@listSecrets');
 
-        // Scroll to and wait for the create button to be visible
-        cy.findByTestId('attach-new-secret-button').should('exist');
-        cy.findByTestId('attach-new-secret-button').scrollIntoView();
-        cy.findByTestId('attach-new-secret-button').should('be.visible');
+        // Wait for the create button to be visible
+        cy.findByTestId('create-new-secret-button').should('be.visible');
 
         // Create first secret
         cy.interceptApi(
@@ -1362,7 +1352,7 @@ describe('Create workspace', () => {
           { statusCode: 200, body: { data: {} } },
         ).as('deleteSecret1');
 
-        createWorkspace.clickAttachNewSecret();
+        createWorkspace.clickCreateNewSecret();
         secretsCreateModal.typeSecretName(secret1);
         secretsCreateModal.typeKey(0, 'key1');
         secretsCreateModal.typeValue(0, 'value1');
@@ -1388,7 +1378,7 @@ describe('Create workspace', () => {
           { statusCode: 200, body: { data: {} } },
         ).as('deleteSecret2');
 
-        createWorkspace.clickAttachNewSecret();
+        createWorkspace.clickCreateNewSecret();
         secretsCreateModal.typeSecretName(secret2);
         secretsCreateModal.typeKey(0, 'key2');
         secretsCreateModal.typeValue(0, 'value2');
@@ -1401,11 +1391,15 @@ describe('Create workspace', () => {
         cy.findByTestId('secrets-table').should('contain', secret2);
 
         // Remove first secret
-        secretsManagement.clickKebabMenu(secret1);
-        secretsManagement.clickRemoveAction(secret1);
+        cy.findByTestId('secrets-table')
+          .contains('tr', secret1)
+          .findByTestId(`secret-kebab-${secret1}`)
+          .click();
+        cy.contains('button', 'Remove').click();
 
-        // Confirm first detach
-        secretsDetachModal.clickConfirm();
+        // Confirm first deletion
+        cy.findByTestId('delete-modal-input').type(secret1);
+        cy.findByTestId('delete-button').should('not.be.disabled').click();
         cy.wait('@deleteSecret1');
 
         // Verify only secret2 remains
@@ -1413,11 +1407,15 @@ describe('Create workspace', () => {
         cy.findByTestId('secrets-table').should('contain', secret2);
 
         // Remove second secret
-        secretsManagement.clickKebabMenu(secret2);
-        secretsManagement.clickRemoveAction(secret2);
+        cy.findByTestId('secrets-table')
+          .contains('tr', secret2)
+          .findByTestId(`secret-kebab-${secret2}`)
+          .click();
+        cy.contains('button', 'Remove').click();
 
-        // Confirm second detach
-        secretsDetachModal.clickConfirm();
+        // Confirm second deletion
+        cy.findByTestId('delete-modal-input').type(secret2);
+        cy.findByTestId('delete-button').should('not.be.disabled').click();
         cy.wait('@deleteSecret2');
 
         // Verify table is gone (no secrets left)

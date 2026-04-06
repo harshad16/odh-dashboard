@@ -33,7 +33,6 @@ export interface SecretsAttachModalProps {
   onAttach: (secrets: SecretsSecretListItem[], mountPath: string, mode: number) => void;
   availableSecrets: SecretsSecretListItem[];
   mountedKeys: Set<string>;
-  existingMountPaths: Set<string>;
 }
 
 export const SecretsAttachModal: React.FC<SecretsAttachModalProps> = ({
@@ -42,7 +41,6 @@ export const SecretsAttachModal: React.FC<SecretsAttachModalProps> = ({
   onAttach,
   availableSecrets,
   mountedKeys,
-  existingMountPaths,
 }) => {
   const [selected, setSelected] = useState<string | null>(null);
   const [mountPath, setMountPath] = useState('/secrets/');
@@ -115,39 +113,33 @@ export const SecretsAttachModal: React.FC<SecretsAttachModalProps> = ({
   }, []);
 
   const handleAttach = useCallback(() => {
-    if (!selected) {
-      return;
-    }
-
     const mode = parseInt(defaultMode, 8);
-    const trimmedMountPath = normalizeMountPath(mountPath);
-    const key = getSecretKey(selected, trimmedMountPath);
+    // Check for duplicates
+    const duplicates: string[] = [];
+    // Handle trailing slashes in mount path
+    const trimmedMountPath = mountPath.trim().replace(/\/+$/, '');
+    selected.forEach((secretName) => {
+      const key = getSecretKey(secretName, trimmedMountPath);
+      if (mountedKeys.has(key)) {
+        duplicates.push(secretName);
+      }
+    });
 
-    if (mountedKeys.has(key)) {
-      setError(`The secret "${selected}" is already mounted to "${trimmedMountPath}"`);
+    if (duplicates.length > 0) {
+      const secretList = duplicates.join(', ');
+      setError(
+        `The following secret${duplicates.length > 1 ? 's are' : ' is'} already mounted to "${mountPath.trim()}": ${secretList}`,
+      );
       return;
     }
 
-    const uniquenessErr = getMountPathUniquenessError(existingMountPaths, mountPath);
-    if (uniquenessErr) {
-      setError(uniquenessErr);
-      return;
-    }
-
-    const secretToAttach = availableSecrets.find((secret) => secret.name === selected);
-    if (secretToAttach) {
-      onAttach([secretToAttach], trimmedMountPath, mode);
-    }
-  }, [
-    getSecretKey,
-    mountedKeys,
-    existingMountPaths,
-    mountPath,
-    selected,
-    availableSecrets,
-    onAttach,
-    defaultMode,
-  ]);
+    // No duplicates, proceed with attaching
+    onAttach(
+      availableSecrets.filter((secret) => selected.includes(secret.name)),
+      trimmedMountPath,
+      mode,
+    );
+  }, [getSecretKey, mountedKeys, mountPath, selected, availableSecrets, onAttach, defaultMode]);
 
   const initialOptions = useMemo<TypeaheadSelectOption[]>(
     () =>
