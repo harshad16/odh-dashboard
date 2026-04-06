@@ -45,6 +45,7 @@ type WorkspaceKindEnvelope Envelope[models.WorkspaceKind]
 //
 //	@Summary		Get workspace kind
 //	@Description	Returns details of a specific workspace kind identified by its name.
+//	@Description	Returns details of a specific workspace kind identified by its name.
 //	@Tags			workspacekinds
 //	@ID				getWorkspaceKind
 //	@Accept			json
@@ -92,9 +93,10 @@ func (a *App) GetWorkspaceKindHandler(w http.ResponseWriter, r *http.Request, ps
 }
 
 // GetWorkspaceKindsHandler returns a list of all workspace kinds in the cluster.
+// GetWorkspaceKindsHandler returns a list of all workspace kinds in the cluster.
 //
 //	@Summary		List workspace kinds
-//	@Description	Returns a list of all workspace kinds in the cluster. When namespaceFilter is provided, authorization checks whether the user can create workspaces in that namespace instead of requiring workspace kind list permission.
+//	@Description	Returns a list of all workspace kinds in the cluster.
 //	@Tags			workspacekinds
 //	@ID				listWorkspaceKinds
 //	@Accept			json
@@ -107,6 +109,7 @@ func (a *App) GetWorkspaceKindHandler(w http.ResponseWriter, r *http.Request, ps
 //	@Failure		500				{object}	ErrorEnvelope				"Internal server error. An unexpected error occurred on the server."
 //	@Router			/workspacekinds [get]
 func (a *App) GetWorkspaceKindsHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+
 	// =========================== AUTH ===========================
 	authPolicies := []*auth.ResourcePolicy{
 		auth.NewResourcePolicy(auth.VerbList, auth.WorkspaceKinds, auth.ResourcePolicyResourceMeta{}),

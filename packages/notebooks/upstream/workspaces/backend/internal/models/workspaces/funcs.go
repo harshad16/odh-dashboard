@@ -41,20 +41,18 @@ func NewWorkspaceListItemFromWorkspace(ws *kubefloworgv1beta1.Workspace, wsk *ku
 		panic("provided WorkspaceKind does not match the Workspace")
 	}
 
-	// we only know the icon url if the WorkspaceKind exists
-	iconURL := UnknownIconURL
-	if wskExists(wsk) {
-		// TODO: icons MUST be either set to remote URL or read from a ConfigMap
-		//       we can remove this fallback once we implement the ConfigMap option.
-		iconURL = ptr.Deref(wsk.Spec.Spawner.Icon.Url, UnknownIconURL)
+	// TODO: icons can either be a remote URL or read from a ConfigMap.
+	//       in BOTH cases, we should cache and serve the image under a path on the backend API:
+	//       /api/v1/workspacekinds/{name}/assets/icon
+	iconRef := ImageRef{
+		URL: fmt.Sprintf("/workspaces/backend/api/v1/workspacekinds/%s/assets/icon", ws.Spec.Kind),
 	}
 
-	// we only know the logo url if the WorkspaceKind exists
-	logoURL := UnknownLogoURL
-	if wskExists(wsk) {
-		// TODO: logos MUST be either set to remote URL or read from a ConfigMap
-		//       we can remove this fallback once we implement the ConfigMap option.
-		logoURL = ptr.Deref(wsk.Spec.Spawner.Logo.Url, UnknownLogoURL)
+	// TODO: logos can either be a remote URL or read from a ConfigMap.
+	//       in BOTH cases, we should cache and serve the image under a path on the backend API:
+	//       /api/v1/workspacekinds/{name}/assets/logo
+	logoRef := ImageRef{
+		URL: fmt.Sprintf("/workspaces/backend/api/v1/workspacekinds/%s/assets/logo", ws.Spec.Kind),
 	}
 
 	podLabels := make(map[string]string)
@@ -104,6 +102,7 @@ func NewWorkspaceListItemFromWorkspace(ws *kubefloworgv1beta1.Workspace, wsk *ku
 		Paused:         ptr.Deref(ws.Spec.Paused, false),
 		PausedTime:     ws.Status.PauseTime,
 		PendingRestart: ws.Status.PendingRestart,
+		State:          ws.Status.State,
 		State:          ws.Status.State,
 		StateMessage:   ws.Status.StateMessage,
 		PodTemplate: PodTemplate{
