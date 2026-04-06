@@ -96,7 +96,7 @@ func (a *App) GetWorkspaceKindHandler(w http.ResponseWriter, r *http.Request, ps
 // GetWorkspaceKindsHandler returns a list of all workspace kinds in the cluster.
 //
 //	@Summary		List workspace kinds
-//	@Description	Returns a list of all workspace kinds in the cluster.
+//	@Description	Returns a list of all workspace kinds in the cluster. When namespaceFilter is provided, authorization checks whether the user can create workspaces in that namespace instead of requiring workspace kind list permission.
 //	@Tags			workspacekinds
 //	@ID				listWorkspaceKinds
 //	@Accept			json
@@ -107,12 +107,20 @@ func (a *App) GetWorkspaceKindHandler(w http.ResponseWriter, r *http.Request, ps
 //	@Failure		403				{object}	ErrorEnvelope				"Forbidden. User does not have permission to list workspace kinds."
 //	@Failure		422				{object}	ErrorEnvelope				"Unprocessable Entity. Validation error."
 //	@Failure		500				{object}	ErrorEnvelope				"Internal server error. An unexpected error occurred on the server."
+//	@Param			namespaceFilter	query		string						false	"Namespace used for workspace creation authorization"
+//	@Success		200				{object}	WorkspaceKindListEnvelope	"Successful operation. Returns a list of all available workspace kinds."
+//	@Failure		401				{object}	ErrorEnvelope				"Unauthorized. Authentication is required."
+//	@Failure		403				{object}	ErrorEnvelope				"Forbidden. User does not have permission to list workspace kinds."
+//	@Failure		422				{object}	ErrorEnvelope				"Unprocessable Entity. Validation error."
+//	@Failure		500				{object}	ErrorEnvelope				"Internal server error. An unexpected error occurred on the server."
 //	@Router			/workspacekinds [get]
 func (a *App) GetWorkspaceKindsHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+	namespace := r.URL.Query().Get(NamespaceFilterQueryParam)
 
-	// =========================== AUTH ===========================
-	authPolicies := []*auth.ResourcePolicy{
-		auth.NewResourcePolicy(auth.VerbList, auth.WorkspaceKinds, auth.ResourcePolicyResourceMeta{}),
+	// validate query parameters
+	var valErrs field.ErrorList
+	if namespace != "" {
+		valErrs = append(valErrs, helper.ValidateKubernetesNamespaceName(field.NewPath(NamespaceFilterQueryParam), namespace)...)
 	}
 
 	if len(valErrs) > 0 {
@@ -164,6 +172,7 @@ func (a *App) GetWorkspaceKindsHandler(w http.ResponseWriter, r *http.Request, _
 //	@Failure		401		{object}	ErrorEnvelope			"Unauthorized. Authentication is required."
 //	@Failure		403		{object}	ErrorEnvelope			"Forbidden. User does not have permission to create WorkspaceKind."
 //	@Failure		409		{object}	ErrorEnvelope			"Conflict. WorkspaceKind with the same name already exists."
+//	@Failure		413		{object}	ErrorEnvelope			"Request Entity Too Large. The request body is too large."
 //	@Failure		413		{object}	ErrorEnvelope			"Request Entity Too Large. The request body is too large."
 //	@Failure		415		{object}	ErrorEnvelope			"Unsupported Media Type. Content-Type header is not correct."
 //	@Failure		422		{object}	ErrorEnvelope			"Unprocessable Entity. Validation error."
