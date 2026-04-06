@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { Button } from '@patternfly/react-core/dist/esm/components/Button';
+import { Divider } from '@patternfly/react-core/dist/esm/components/Divider';
 import { Form, FormGroup } from '@patternfly/react-core/dist/esm/components/Form';
 import { TextInput } from '@patternfly/react-core/dist/esm/components/TextInput';
 import { Switch } from '@patternfly/react-core/dist/esm/components/Switch';
@@ -18,9 +19,10 @@ import { HelperText } from '@patternfly/react-core/dist/esm/components/HelperTex
 import { useThemeContext } from 'mod-arch-kubeflow';
 import { useNotebookAPI } from '~/app/hooks/useNotebookAPI';
 import { useNamespaceSelectorWrapper } from '~/app/hooks/useNamespaceSelectorWrapper';
+import { SecretsSecretListItem } from '~/generated/data-contracts';
 import ThemeAwareFormGroupWrapper from '~/shared/components/ThemeAwareFormGroupWrapper';
 import useSecretContents, { SecretKeyValuePair } from '~/app/hooks/useSecretContents';
-import { EditableRowsTable } from '~/app/pages/WorkspaceKinds/Form/EditableRowsTable';
+import SecretKeyValuePairInput from './SecretKeyValuePairInput';
 
 interface SecretsCreateModalProps {
   isOpen: boolean;
@@ -51,6 +53,8 @@ export const SecretsCreateModal: React.FC<SecretsCreateModalProps> = ({
 }) => {
   const { api } = useNotebookAPI();
   const { selectedNamespace } = useNamespaceSelectorWrapper();
+
+  const isEditMode = !!secretToEdit;
 
   const [secretName, setSecretName] = useState('');
   const [keyValuePairs, setKeyValuePairs] = useState<SecretKeyValuePair[]>([EMPTY_KEY_VALUE_PAIR]);
@@ -158,6 +162,21 @@ export const SecretsCreateModal: React.FC<SecretsCreateModalProps> = ({
     return contents;
   }, [keyValuePairs]);
 
+  const resetForm = useCallback(() => {
+    setSecretName('');
+    setKeyValuePairs([EMPTY_KEY_VALUE_PAIR]);
+    setImmutable(false);
+    setError(null);
+  }, []);
+
+  const buildContentsPayload = useCallback(() => {
+    const contents: Record<string, { base64?: string }> = {};
+    keyValuePairs.forEach((pair) => {
+      contents[pair.key] = { base64: btoa(pair.value) };
+    });
+    return contents;
+  }, [keyValuePairs]);
+
   const handleSubmit = useCallback(async () => {
     const validationError = validateForm();
     if (validationError) {
@@ -223,8 +242,8 @@ export const SecretsCreateModal: React.FC<SecretsCreateModalProps> = ({
 
   const { isMUITheme } = useThemeContext();
 
-  const modalTitle = isEditMode ? 'Edit Secret' : 'Attach New Secret';
-  const submitButtonText = isEditMode ? 'Save' : 'Attach';
+  const modalTitle = isEditMode ? 'Edit Secret' : 'Create Secret';
+  const submitButtonText = isEditMode ? 'Save' : 'Create';
 
   return (
     <Modal
@@ -352,8 +371,7 @@ export const SecretsCreateModal: React.FC<SecretsCreateModalProps> = ({
           isDisabled={
             isSubmitting ||
             (isEditMode && !isSecretContentsLoaded) ||
-            (isEditMode && secretToEdit.immutable) ||
-            (isEditMode && !secretToEdit.canUpdate)
+            (isEditMode && secretToEdit.immutable)
           }
           data-testid="secret-modal-submit-button"
         >

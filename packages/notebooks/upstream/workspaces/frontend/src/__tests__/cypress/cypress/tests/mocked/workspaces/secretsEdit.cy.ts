@@ -15,7 +15,7 @@ import {
   buildMockWorkspaceUpdateFromWorkspace,
 } from '~/shared/mock/mockBuilder';
 import { navBar } from '~/__tests__/cypress/cypress/pages/components/navBar';
-import { V1Beta1WorkspaceState } from '~/generated/data-contracts';
+import { WorkspacesWorkspaceState } from '~/generated/data-contracts';
 
 describe('Edit Secret Modal', () => {
   const mockNamespace = buildMockNamespace({ name: 'default' });
@@ -26,7 +26,7 @@ describe('Edit Secret Modal', () => {
     name: 'test-workspace',
     namespace: mockNamespace.name,
     workspaceKind: mockWorkspaceKindInfo,
-    state: V1Beta1WorkspaceState.WorkspaceStateRunning,
+    state: WorkspacesWorkspaceState.WorkspaceStateRunning,
   });
 
   // Add a secret to the workspace
@@ -194,7 +194,7 @@ describe('Edit Secret Modal', () => {
       name: 'test-workspace',
       namespace: mockNamespace.name,
       workspaceKind: mockWorkspaceKindInfo,
-      state: V1Beta1WorkspaceState.WorkspaceStateRunning,
+      state: WorkspacesWorkspaceState.WorkspaceStateRunning,
     });
     workspaceWithImmutableSecret.podTemplate.volumes.secrets = [
       { secretName: 'immutable-secret', mountPath: '/mnt/immutable', defaultMode: 420 },
@@ -268,6 +268,24 @@ describe('Edit Secret Modal', () => {
       { data: [...mockSecrets, secretWithoutUpdate] },
     ).as('listSecretsUpdated');
 
+    cy.interceptApi(
+      'GET /api/:apiVersion/secrets/:namespace/:secretName',
+      {
+        path: {
+          apiVersion: NOTEBOOKS_API_VERSION,
+          namespace: mockNamespace.name,
+          secretName: 'no-update-secret',
+        },
+      },
+      {
+        data: {
+          type: 'Opaque',
+          immutable: false,
+          contents: { key: { base64: btoa('value') } },
+        },
+      },
+    ).as('getSecretNoUpdate');
+
     // Add this secret to workspace and re-visit the page
     mockWorkspaceListItem.podTemplate.volumes.secrets = [
       { secretName: 'no-update-secret', mountPath: '/mnt/no-update', defaultMode: 420 },
@@ -302,10 +320,11 @@ describe('Edit Secret Modal', () => {
     secretsManagement.expandSecretsSection();
     cy.wait('@listSecretsUpdated');
 
-    // Open kebab menu for secret without update permission
-    secretsManagement.clickKebabMenu('no-update-secret');
+    // Open edit modal
+    secretsManagement.openEditModal('no-update-secret');
+    cy.wait('@getSecretNoUpdate');
 
-    // Edit action is disabled when canUpdate is false (modal is not opened)
-    secretsManagement.findEditAction('no-update-secret').should('have.class', 'pf-m-aria-disabled');
+    // Verify Cannot update label is shown
+    secretsModal.findCanUpdateLabel().should('contain', 'Cannot update');
   });
 });

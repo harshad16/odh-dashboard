@@ -21,14 +21,7 @@ import { WrenchIcon } from '@patternfly/react-icons/dist/esm/icons/wrench-icon';
 import { Stack, StackItem } from '@patternfly/react-core/dist/esm/layouts/Stack';
 import { MountPathField } from '~/app/pages/Workspaces/Form/MountPathField';
 import { SecretsSecretListItem } from '~/generated/data-contracts';
-import {
-  isValidDefaultMode,
-  DEFAULT_MODE_OCTAL,
-  normalizeMountPath,
-  validateMountPath,
-  getMountPathUniquenessError,
-  getMountPathValidationErrorForPaths,
-} from '~/app/pages/Workspaces/Form/helpers';
+import { isValidDefaultMode, DEFAULT_MODE_OCTAL } from '~/app/pages/Workspaces/Form/helpers';
 import ThemeAwareFormGroupWrapper from '~/shared/components/ThemeAwareFormGroupWrapper';
 import { LabelGroupWithTooltip } from '~/app/components/LabelGroupWithTooltip';
 
