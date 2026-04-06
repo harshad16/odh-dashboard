@@ -18,7 +18,9 @@ package auth
 
 import (
 	"fmt"
+	"log/slog"
 	"net/http"
+	"strings"
 	"time"
 
 	kubefloworgv1beta1 "github.com/kubeflow/notebooks/workspaces/controller/api/v1beta1"
@@ -31,6 +33,7 @@ import (
 	"k8s.io/apiserver/pkg/authorization/authorizerfactory"
 	authorizationv1 "k8s.io/client-go/kubernetes/typed/authorization/v1"
 	"k8s.io/client-go/rest"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 const (
@@ -83,18 +86,59 @@ var resourceGVRMap = map[ResourcePolicyResource]schema.GroupVersionResource{
 	Workspaces:             kubefloworgv1beta1.GroupVersion.WithResource(string(Workspaces)),
 }
 
-// NewResourcePolicy returns a resource policy for the given verb and resource type.
-func NewResourcePolicy(verb ResourcePolicyVerb, resource ResourcePolicyResource, resourceMeta ResourcePolicyResourceMeta) *ResourcePolicy {
-	gvr, ok := resourceGVRMap[resource]
-	if !ok {
-		// this should never happen unless we forgot to update the map
-		panic(fmt.Sprintf("unsupported ResourcePolicyResource: %s", resource))
+type ResourcePolicy struct {
+	Verb ResourceVerb
+
+	Group    string
+	Version  string
+	Kind     string
+	Resource string
+
+	Namespace string
+	Name      string
+}
+
+// kindToResource converts a Kind name to a resource name (lowercase plural).
+// This is a simplified conversion that works for common resources.
+func kindToResource(kind string) string {
+	if kind == "" {
+		return ""
 	}
+	lower := strings.ToLower(kind)
+	// Handle common irregular plurals
+	if strings.HasSuffix(lower, "s") {
+		return lower + "es"
+	}
+	return lower + "s"
+}
+
+// NewResourcePolicy returns a new resource policy based on the provided verb and resource object.
+func NewResourcePolicy(verb ResourceVerb, object client.Object) *ResourcePolicy {
+	gvk := object.GetObjectKind().GroupVersionKind()
+	resource := kindToResource(gvk.Kind)
+
+	slog.Debug("NewResourcePolicy",
+		"verb", verb,
+		"group", gvk.Group,
+		"version", gvk.Version,
+		"kind", gvk.Kind,
+		"resource", resource,
+	)
 
 	policy := &ResourcePolicy{
-		Verb:         verb,
-		GVR:          gvr,
-		ResourceMeta: resourceMeta,
+		Verb:     verb,
+		Group:    gvk.Group,
+		Version:  gvk.Version,
+		Kind:     gvk.Kind,
+		Resource: resource,
+	}
+
+	if object.GetNamespace() != "" {
+		policy.Namespace = object.GetNamespace()
+	}
+
+	if object.GetName() != "" {
+		policy.Name = object.GetName()
 	}
 
 	return policy
@@ -108,6 +152,14 @@ type ResourcePolicy struct {
 
 // AttributesFor returns an authorizer.Attributes which could be used with an authorizer.Authorizer to authorize the user for the resource policy.
 func (p *ResourcePolicy) AttributesFor(u user.Info) authorizer.Attributes {
+	slog.Info("AttributesFor SAR check",
+		"user", u.GetName(),
+		"groups", u.GetGroups(),
+		"verb", p.Verb,
+		"apiGroup", p.Group,
+		"resource", p.Resource,
+		"namespace", p.Namespace,
+	)
 	return authorizer.AttributesRecord{
 		User:            u,
 		Verb:            string(p.Verb),

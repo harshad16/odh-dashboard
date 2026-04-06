@@ -4,22 +4,21 @@ import type {
   RouteExtension,
 } from '@odh-dashboard/plugin-core/extension-points';
 
-const reliantAreas = ['workbenches'];
-const PLUGIN_NOTEBOOKS = 'notebooks-plugin';
+// This must match SupportedArea.NOTEBOOKS_V2 in frontend/src/concepts/areas/types.ts
+const NOTEBOOKS_V2 = 'notebooks-v2';
 
 const extensions: (NavExtension | RouteExtension | AreaExtension)[] = [
   {
     type: 'app.area',
     properties: {
-      id: PLUGIN_NOTEBOOKS,
-      reliantAreas,
-      devFlags: ['Notebooks Plugin'],
+      id: NOTEBOOKS_V2,
+      featureFlags: ['notebooksV2'],
     },
   },
   {
     type: 'app.navigation/href',
     flags: {
-      required: [PLUGIN_NOTEBOOKS],
+      required: [NOTEBOOKS_V2],
     },
     properties: {
       id: 'notebooks-kf-workspaces',
@@ -33,7 +32,7 @@ const extensions: (NavExtension | RouteExtension | AreaExtension)[] = [
   {
     type: 'app.navigation/href',
     flags: {
-      required: [PLUGIN_NOTEBOOKS],
+      required: [NOTEBOOKS_V2],
     },
     properties: {
       id: 'notebooks-kf-workspacekinds',
@@ -47,7 +46,7 @@ const extensions: (NavExtension | RouteExtension | AreaExtension)[] = [
   {
     type: 'app.route',
     flags: {
-      required: [PLUGIN_NOTEBOOKS],
+      required: [NOTEBOOKS_V2],
     },
     properties: {
       path: '/notebooks/*',
