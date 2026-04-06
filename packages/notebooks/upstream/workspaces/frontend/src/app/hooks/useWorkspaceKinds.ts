@@ -17,7 +17,7 @@ const useWorkspaceKinds = (namespaceFilter?: string): FetchState<WorkspacekindsW
     const query = namespaceFilter ? { namespaceFilter } : undefined;
     const envelope = await api.workspaceKinds.listWorkspaceKinds(query);
     return envelope.data;
-  }, [api, apiAvailable]);
+  }, [api, apiAvailable, namespaceFilter]);
   return useFetchState(call, []);
 };
 

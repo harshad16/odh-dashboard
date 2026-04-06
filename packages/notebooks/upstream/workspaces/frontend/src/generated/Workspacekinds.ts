@@ -20,7 +20,7 @@ import { ContentType, HttpClient, RequestParams } from './http-client';
 
 export class Workspacekinds<SecurityDataType = unknown> extends HttpClient<SecurityDataType> {
   /**
-   * @description Returns a list of all workspace kinds in the cluster.
+   * @description Returns a list of all workspace kinds in the cluster. When namespaceFilter is provided, authorization checks whether the user can create workspaces in that namespace instead of requiring workspace kind list permission.
    *
    * @tags workspacekinds
    * @name ListWorkspaceKinds
