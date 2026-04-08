@@ -20,7 +20,6 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
-	"strings"
 	"time"
 
 	kubefloworgv1beta1 "github.com/kubeflow/notebooks/workspaces/controller/api/v1beta1"
@@ -33,7 +32,6 @@ import (
 	"k8s.io/apiserver/pkg/authorization/authorizerfactory"
 	authorizationv1 "k8s.io/client-go/kubernetes/typed/authorization/v1"
 	"k8s.io/client-go/rest"
-	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 const (
@@ -87,67 +85,30 @@ var resourceGVRMap = map[ResourcePolicyResource]schema.GroupVersionResource{
 }
 
 type ResourcePolicy struct {
-	Verb ResourceVerb
-
-	Group    string
-	Version  string
-	Kind     string
-	Resource string
-
-	Namespace string
-	Name      string
-}
-
-// kindToResource converts a Kind name to a resource name (lowercase plural).
-// This is a simplified conversion that works for common resources.
-func kindToResource(kind string) string {
-	if kind == "" {
-		return ""
-	}
-	lower := strings.ToLower(kind)
-	// Handle common irregular plurals
-	if strings.HasSuffix(lower, "s") {
-		return lower + "es"
-	}
-	return lower + "s"
-}
-
-// NewResourcePolicy returns a new resource policy based on the provided verb and resource object.
-func NewResourcePolicy(verb ResourceVerb, object client.Object) *ResourcePolicy {
-	gvk := object.GetObjectKind().GroupVersionKind()
-	resource := kindToResource(gvk.Kind)
-
-	slog.Debug("NewResourcePolicy",
-		"verb", verb,
-		"group", gvk.Group,
-		"version", gvk.Version,
-		"kind", gvk.Kind,
-		"resource", resource,
-	)
-
-	policy := &ResourcePolicy{
-		Verb:     verb,
-		Group:    gvk.Group,
-		Version:  gvk.Version,
-		Kind:     gvk.Kind,
-		Resource: resource,
-	}
-
-	if object.GetNamespace() != "" {
-		policy.Namespace = object.GetNamespace()
-	}
-
-	if object.GetName() != "" {
-		policy.Name = object.GetName()
-	}
-
-	return policy
-}
-
-type ResourcePolicy struct {
 	Verb         ResourcePolicyVerb
 	GVR          schema.GroupVersionResource
 	ResourceMeta ResourcePolicyResourceMeta
+}
+
+// NewResourcePolicy returns a new resource policy based on the provided verb, resource, and resource meta.
+func NewResourcePolicy(verb ResourcePolicyVerb, resource ResourcePolicyResource, resourceMeta ResourcePolicyResourceMeta) *ResourcePolicy {
+	gvr, ok := resourceGVRMap[resource]
+	if !ok {
+		slog.Warn("NewResourcePolicy: unknown resource", "resource", resource)
+	}
+
+	slog.Debug("NewResourcePolicy",
+		"verb", verb,
+		"resource", resource,
+		"gvr", gvr,
+		"resourceMeta", resourceMeta,
+	)
+
+	return &ResourcePolicy{
+		Verb:         verb,
+		GVR:          gvr,
+		ResourceMeta: resourceMeta,
+	}
 }
 
 // AttributesFor returns an authorizer.Attributes which could be used with an authorizer.Authorizer to authorize the user for the resource policy.
@@ -156,9 +117,10 @@ func (p *ResourcePolicy) AttributesFor(u user.Info) authorizer.Attributes {
 		"user", u.GetName(),
 		"groups", u.GetGroups(),
 		"verb", p.Verb,
-		"apiGroup", p.Group,
-		"resource", p.Resource,
-		"namespace", p.Namespace,
+		"apiGroup", p.GVR.Group,
+		"resource", p.GVR.Resource,
+		"namespace", p.ResourceMeta.Namespace,
+		"name", p.ResourceMeta.Name,
 	)
 	return authorizer.AttributesRecord{
 		User:            u,

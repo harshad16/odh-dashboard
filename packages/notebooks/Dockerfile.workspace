@@ -65,13 +65,11 @@ ARG TARGETARCH
 WORKDIR /usr/src/app
 
 USER root
-RUN mkdir bff && chown -R default:root /usr/src/app
+RUN chown -R default:root /usr/src/app
 USER default
 
 # Copy the Go Modules manifests
 COPY --chown=default:root ${BFF_SOURCE_CODE}/go.mod ${BFF_SOURCE_CODE}/go.sum ./
-COPY --chown=default:root ${CONTROLLER_SOURCE_CODE} ./controller
-COPY --chown=default:root ${BFF_SOURCE_CODE} ./backend
 
 # Copy the controller module (required by backend's go.mod replace directive)
 COPY --chown=default:root ${CONTROLLER_SOURCE_CODE} ./controller
