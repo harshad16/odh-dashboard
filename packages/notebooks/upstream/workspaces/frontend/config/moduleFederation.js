@@ -16,10 +16,6 @@ const moduleFederationConfig = {
       singleton: true,
       requiredVersion: '*',
     },
-    '@odh-dashboard/plugin-core': {
-      singleton: true,
-      requiredVersion: '0.0.0',
-    },
   },
   exposes: {
     './extensions': './src/odh/extensions',

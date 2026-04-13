@@ -39,9 +39,6 @@
       "port": 8843
     }
   },
-  "dependencies": {
-    "@odh-dashboard/internal": "*"
-  },
   "devDependencies": {
     "@odh-dashboard/eslint-config": "*",
     "@odh-dashboard/tsconfig": "*"
