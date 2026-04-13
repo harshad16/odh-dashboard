@@ -10,7 +10,7 @@ import { LoadingSpinner } from '~/app/components/LoadingSpinner';
 import { LoadError } from '~/app/components/LoadError';
 import { useWorkspaceRowActions } from '~/app/hooks/useWorkspaceRowActions';
 import { V1Beta1WorkspaceState } from '~/generated/data-contracts';
-import NamespaceSelector from '~/app/components/NamespaceSelector';
+import ProjectSelectorWrapper from '~/odh/components/ProjectSelectorWrapper';
 
 export const Workspaces: React.FunctionComponent = () => {
   const { namespacesLoaded, selectedNamespace } = useNamespaceSelectorWrapper();
@@ -44,31 +44,23 @@ export const Workspaces: React.FunctionComponent = () => {
     return <LoadError title="Failed to load workspaces" error={workspacesLoadError} />;
   }
 
-  if (!namespacesLoaded) {
-    return <LoadingSpinner />;
-  }
-
   return (
     <PageSection isFilled>
       <Stack hasGutter>
         <StackItem>
-          <Flex justifyContent={{ default: 'justifyContentSpaceBetween' }} alignItems={{ default: 'alignItemsCenter' }}>
+          <Flex
+            justifyContent={{ default: 'justifyContentSpaceBetween' }}
+            alignItems={{ default: 'alignItemsFlexStart' }}
+          >
             <FlexItem>
-              <Content component={ContentVariants.h1} data-testid="app-page-title">
-                Workspaces
-              </Content>
-            </FlexItem>
-            <FlexItem>
-              <Flex alignItems={{ default: 'alignItemsCenter' }} spaceItems={{ default: 'spaceItemsSm' }}>
-                <FlexItem>
-                  <Content component={ContentVariants.small}>Project</Content>
-                </FlexItem>
-                <FlexItem>
-                  <NamespaceSelector />
-                </FlexItem>
-              </Flex>
+              <ProjectSelectorWrapper />
             </FlexItem>
           </Flex>
+        </StackItem>
+        <StackItem>
+          <Content component={ContentVariants.h1} data-testid="app-page-title">
+            Workspaces
+          </Content>
         </StackItem>
         <StackItem>
           <Content component={ContentVariants.p}>
@@ -76,16 +68,15 @@ export const Workspaces: React.FunctionComponent = () => {
           </Content>
         </StackItem>
         <StackItem isFilled>
-          {!selectedNamespace ? (
-            <Content component={ContentVariants.p}>
-              Select a project to view workspaces.
-            </Content>
+          {!namespacesLoaded || selectedNamespace === '' ? (
+            <LoadingSpinner />
           ) : !workspacesLoaded ? (
             <LoadingSpinner />
           ) : (
             <WorkspaceTable
               workspaces={workspaces}
               rowActions={tableRowActions}
+              namespace={selectedNamespace}
               hiddenColumns={['namespace', 'gpu', 'idleGpu']}
               refreshWorkspaces={refreshWorkspaces}
             />
